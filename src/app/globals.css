@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #F97316;
+  --primary-dark: #ea6d0e;
+  --primary-light: #fdba74;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.btn-primary {
+  @apply bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+}
+
+.input-main {
+  @apply w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-primary transition-colors duration-200;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 1.5s linear infinite;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
