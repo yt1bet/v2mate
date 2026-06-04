@@ -47,10 +47,21 @@ function postUrl(urlStr, body, options = {}) {
   });
 }
 
+function pipeAudio(audioUrl, res) {
+  return new Promise((resolve, reject) => {
+    https.get(audioUrl, (stream) => {
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
+      stream.pipe(res);
+      stream.on('end', resolve);
+      stream.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -74,22 +85,28 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Could not process Instagram URL' });
   }
 
-  // MP3 via youtube-mp36
+  // MP3 — pipe directly to avoid expiry
   if (format === 'mp3') {
     try {
       const data = await fetchUrl(
         `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
         { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 30000 }
       );
-      if (data.link) return res.status(200).json({ downloadUrl: data.link });
+      if (data.link) {
+        await pipeAudio(data.link, res);
+        return;
+      }
       if (data.status === 'processing') {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 8; i++) {
           await new Promise(r => setTimeout(r, 3000));
           const poll = await fetchUrl(
             `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
             { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY } }
           );
-          if (poll.link) return res.status(200).json({ downloadUrl: poll.link });
+          if (poll.link) {
+            await pipeAudio(poll.link, res);
+            return;
+          }
         }
       }
     } catch(e) {}
