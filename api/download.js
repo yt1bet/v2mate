@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
   const videoId = ytMatch ? ytMatch[1] : null;
 
-  // Instagram — use Cobalt
+  // Instagram
   if (!videoId) {
     try {
       const r = await postUrl('https://api.cobalt.tools/api/json', { url, vQuality: 'max' }, { timeout: 15000 });
@@ -69,40 +69,21 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Could not process Instagram URL' });
   }
 
-  // MP3
+  // MP3 — use reserved_file (permanent link)
   if (format === 'mp3') {
-    // Try 1: Spicy-Laika — correct endpoint
     try {
       const r = await fetchUrl(
-        `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=high&wait_until_the_file_is_ready=true`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 25000 }
+        `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=high&wait_until_the_file_is_ready=false`,
+        { headers: { 'x-rapidapi-host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 20000 }
       );
       if (r.json) {
-        const link = r.json.url || r.json.link || r.json.downloadUrl || r.json.download_url;
+        // Use reserved_file — it's permanent, never expires
+        const link = r.json.reserved_file || r.json.file || r.json.url || r.json.link;
         if (link) return res.status(200).json({ downloadUrl: link });
       }
     } catch(e) {}
 
-    // Try 2: youtube-mp36
-    try {
-      const r = await fetchUrl(
-        `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 15000 }
-      );
-      if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
-      if (r.json && r.json.status === 'processing') {
-        for (let i = 0; i < 5; i++) {
-          await new Promise(r => setTimeout(r, 3000));
-          const poll = await fetchUrl(
-            `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
-            { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY } }
-          );
-          if (poll.json && poll.json.link) return res.status(200).json({ downloadUrl: poll.json.link });
-        }
-      }
-    } catch(e) {}
-
-    // Try 3: Cobalt audio
+    // Fallback: Cobalt audio
     try {
       const r = await postUrl('https://api.cobalt.tools/api/json', { url, isAudioOnly: true, aFormat: 'mp3' }, { timeout: 15000 });
       if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
