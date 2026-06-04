@@ -629,14 +629,9 @@
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Download failed');
       if (data.downloadUrl) {
-        const a = document.createElement('a');
-a.href = data.downloadUrl;
-a.download = 'video.mp4';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showToast('✅ Download started!');
-      }
+  window.location.href = data.downloadUrl;
+  showToast('✅ Download started!');
+}
     } catch (err) {
       showError(err.message || 'Download failed. Try a different quality.');
     } finally {
