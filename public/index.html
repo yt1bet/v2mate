@@ -413,13 +413,7 @@ async function triggerDownload(url, quality, format, btn) {
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Failed');
 
-    const a = document.createElement('a');
-    a.href = data.downloadUrl;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    window.open(data.downloadUrl, '_blank');
     mp3Status.style.display = 'none';
   } catch(e) {
     alert(e.message || 'Download failed. Please try another quality or try again.');
