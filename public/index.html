@@ -645,8 +645,15 @@
       }
 
       if (data.downloadUrl) {
-        window.open(data.downloadUrl, '_blank');
-        showToast('✅ Download started!');
+  const a = document.createElement('a');
+  a.href = data.downloadUrl;
+  a.download = '';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('✅ Download started!');
+}
       }
     } catch (err) {
       showError(err.message || 'Download failed. Try a different quality.');
