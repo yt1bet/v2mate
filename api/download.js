@@ -7,8 +7,8 @@ function fetchUrl(urlStr, options = {}) {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch(e) { resolve(data); }
+        try { resolve({ json: JSON.parse(data), status: res.statusCode }); }
+        catch(e) { resolve({ json: null, raw: data, status: res.statusCode }); }
       });
     });
     req.on('error', reject);
@@ -36,26 +36,14 @@ function postUrl(urlStr, body, options = {}) {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch(e) { resolve(data); }
+        try { resolve({ json: JSON.parse(data), status: res.statusCode }); }
+        catch(e) { resolve({ json: null, raw: data, status: res.statusCode }); }
       });
     });
     req.on('error', reject);
     setTimeout(() => { req.destroy(); reject(new Error('Timeout')); }, timeout);
     req.write(bodyStr);
     req.end();
-  });
-}
-
-function pipeAudio(audioUrl, res) {
-  return new Promise((resolve, reject) => {
-    https.get(audioUrl, (stream) => {
-      res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
-      stream.pipe(res);
-      stream.on('end', resolve);
-      stream.on('error', reject);
-    }).on('error', reject);
   });
 }
 
@@ -75,42 +63,53 @@ module.exports = async (req, res) => {
   // Instagram — use Cobalt
   if (!videoId) {
     try {
-      const cobaltData = await postUrl(
-        'https://api.cobalt.tools/api/json',
-        { url, vQuality: 'max' },
-        { timeout: 15000 }
-      );
-      if (cobaltData.url) return res.status(200).json({ downloadUrl: cobaltData.url });
+      const r = await postUrl('https://api.cobalt.tools/api/json', { url, vQuality: 'max' }, { timeout: 15000 });
+      if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
     } catch(e) {}
     return res.status(500).json({ error: 'Could not process Instagram URL' });
   }
 
-  // MP3 — pipe directly to avoid expiry
+  // MP3 — try multiple APIs
   if (format === 'mp3') {
+    // Try 1: youtube-mp36
     try {
-      const data = await fetchUrl(
+      const r = await fetchUrl(
         `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 30000 }
+        { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 15000 }
       );
-      if (data.link) {
-        await pipeAudio(data.link, res);
-        return;
-      }
-      if (data.status === 'processing') {
-        for (let i = 0; i < 8; i++) {
+      if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
+      if (r.json && r.json.status === 'processing') {
+        for (let i = 0; i < 6; i++) {
           await new Promise(r => setTimeout(r, 3000));
           const poll = await fetchUrl(
             `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
             { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY } }
           );
-          if (poll.link) {
-            await pipeAudio(poll.link, res);
-            return;
-          }
+          if (poll.json && poll.json.link) return res.status(200).json({ downloadUrl: poll.json.link });
         }
       }
     } catch(e) {}
-    return res.status(500).json({ error: 'MP3 conversion failed. Try again.' });
+
+    // Try 2: Cobalt for audio
+    try {
+      const r = await postUrl(
+        'https://api.cobalt.tools/api/json',
+        { url, isAudioOnly: true, aFormat: 'mp3' },
+        { timeout: 15000 }
+      );
+      if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
+    } catch(e) {}
+
+    // Try 3: y2mate-style API
+    try {
+      const r = await fetchUrl(
+        `https://youtube-mp3-download1.p.rapidapi.com/dl?id=${videoId}`,
+        { headers: { 'x-rapidapi-host': 'youtube-mp3-download1.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 20000 }
+      );
+      if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
+    } catch(e) {}
+
+    return res.status(500).json({ error: 'MP3 conversion failed. Try again in a moment.' });
   }
 
   // MP4 via YTStream
@@ -118,15 +117,15 @@ module.exports = async (req, res) => {
   const targetHeight = heightMap[quality] || 720;
 
   try {
-    const data = await fetchUrl(
+    const r = await fetchUrl(
       `https://ytstream-download-youtube-videos.p.rapidapi.com/dl?id=${videoId}`,
       { headers: { 'x-rapidapi-host': 'ytstream-download-youtube-videos.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 15000 }
     );
-    if (data.formats && Array.isArray(data.formats)) {
-      const mp4s = data.formats.filter(f => f.mimeType && f.mimeType.includes('video/mp4') && f.url);
+    if (r.json && r.json.formats && Array.isArray(r.json.formats)) {
+      const mp4s = r.json.formats.filter(f => f.mimeType && f.mimeType.includes('video/mp4') && f.url);
       mp4s.sort((a, b) => Math.abs((a.height || 0) - targetHeight) - Math.abs((b.height || 0) - targetHeight));
       if (mp4s.length > 0) return res.status(200).json({ downloadUrl: mp4s[0].url });
-      const any = data.formats.find(f => f.url);
+      const any = r.json.formats.find(f => f.url);
       if (any) return res.status(200).json({ downloadUrl: any.url });
     }
   } catch(e) {}
@@ -134,12 +133,12 @@ module.exports = async (req, res) => {
   // Cobalt fallback for MP4
   try {
     const qualityNum = quality ? quality.replace('p', '') : '720';
-    const cobaltData = await postUrl(
+    const r = await postUrl(
       'https://api.cobalt.tools/api/json',
       { url, vQuality: qualityNum },
       { timeout: 15000 }
     );
-    if (cobaltData.url) return res.status(200).json({ downloadUrl: cobaltData.url });
+    if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
   } catch(e) {}
 
   return res.status(500).json({ error: 'Could not get download link. Try another quality.' });
