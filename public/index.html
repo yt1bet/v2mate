@@ -621,11 +621,11 @@
     btn.innerHTML = '<span class="spinner"></span>Getting link...';
 
     try {
-      const res = await fetch('/.netlify/functions/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: currentUrl, quality, type }),
-      });
+      const res = await fetch('https://yt1bet-api-production.up.railway.app/download', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url: currentUrl, quality, type }),
+});
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Download failed');
       if (data.downloadUrl) {
