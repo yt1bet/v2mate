@@ -2,7 +2,10 @@
   publish = "public"
   functions = "netlify/functions"
 
-[functions]
+[functions."info"]
+  timeout = 26
+
+[functions."download"]
   timeout = 26
 
 [[redirects]]
