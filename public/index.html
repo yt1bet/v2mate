@@ -558,10 +558,7 @@
     const errorEl = document.getElementById('error');
     const resultEl = document.getElementById('result');
 
-    if (!url) {
-      showError('Please paste a YouTube or Instagram URL first.');
-      return;
-    }
+    if (!url) { showError('Please paste a YouTube or Instagram URL first.'); return; }
 
     errorEl.style.display = 'none';
     resultEl.style.display = 'none';
@@ -574,13 +571,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-
       const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Could not fetch video info');
-      }
-
+      if (!res.ok || data.error) throw new Error(data.error || 'Could not fetch video info');
       currentUrl = url;
       showResult(data);
     } catch (err) {
@@ -605,28 +597,25 @@
           <div class="download-section">
             <h3>Download MP4</h3>
             <div class="btn-grid">
-              <button class="dl-btn mp4" onclick="download('360')">📥 360p</button>
-              <button class="dl-btn mp4" onclick="download('480')">📥 480p</button>
-              <button class="dl-btn mp4" onclick="download('720')">📥 720p HD</button>
-              <button class="dl-btn mp4" onclick="download('1080')">📥 1080p FHD</button>
+              <button class="dl-btn mp4" onclick="startDownload('360','mp4',this)">📥 360p</button>
+              <button class="dl-btn mp4" onclick="startDownload('480','mp4',this)">📥 480p</button>
+              <button class="dl-btn mp4" onclick="startDownload('720','mp4',this)">📥 720p HD</button>
+              <button class="dl-btn mp4" onclick="startDownload('1080','mp4',this)">📥 1080p FHD</button>
             </div>
             <h3>Download Audio</h3>
             <div class="btn-grid">
-              <button class="dl-btn mp3" onclick="download('mp3', 'mp3')">🎵 MP3 Audio</button>
+              <button class="dl-btn mp3" onclick="startDownload('mp3','mp3',this)">🎵 MP3 Audio</button>
             </div>
           </div>
         </div>
       </div>
     `;
-
     resultEl.style.display = 'block';
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  async function download(quality, type) {
+  async function startDownload(quality, type, btn) {
     if (!currentUrl) return;
-
-    const btn = event.target;
     const original = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Getting link...';
@@ -635,25 +624,20 @@
       const res = await fetch('/.netlify/functions/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: currentUrl, quality, type: type || 'mp4' }),
+        body: JSON.stringify({ url: currentUrl, quality, type }),
       });
-
       const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Download failed');
-      }
-
+      if (!res.ok || data.error) throw new Error(data.error || 'Download failed');
       if (data.downloadUrl) {
-  const a = document.createElement('a');
-  a.href = data.downloadUrl;
-  a.download = '';
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  showToast('✅ Download started!');
-}
+        const a = document.createElement('a');
+        a.href = data.downloadUrl;
+        a.download = '';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('✅ Download started!');
+      }
     } catch (err) {
       showError(err.message || 'Download failed. Try a different quality.');
     } finally {
@@ -679,7 +663,6 @@
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // Allow pressing Enter in input
   document.getElementById('urlInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') fetchInfo();
   });
