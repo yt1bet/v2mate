@@ -1,101 +1,83 @@
 const express = require('express');
+const cors = require('cors');
+const { execFile } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const https = require('https');
+
 const app = express();
-
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// API: Get video info
-app.post('/api/info', async (req, res) => {
+const YT_DLP_PATH = path.join(__dirname, 'yt-dlp');
+
+async function downloadFile(url, dest) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(dest);
+    const get = (u) => {
+      https.get(u, res => {
+        if (res.statusCode === 301 || res.statusCode === 302) return get(res.headers.location);
+        res.pipe(file);
+        file.on('finish', () => { file.close(); resolve(); });
+      }).on('error', reject);
+    };
+    get(url);
+  });
+}
+
+async function ensureYtDlp() {
+  if (fs.existsSync(YT_DLP_PATH)) { fs.chmodSync(YT_DLP_PATH, '755'); return; }
+  console.log('Downloading yt-dlp...');
+  await downloadFile('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp', YT_DLP_PATH);
+  fs.chmodSync(YT_DLP_PATH, '755');
+  console.log('yt-dlp ready!');
+}
+
+function runYtDlp(args) {
+  return new Promise((resolve, reject) => {
+    execFile(YT_DLP_PATH, args, { timeout: 30000 }, (err, stdout, stderr) => {
+      if (err) return reject(stderr || err.message);
+      resolve(stdout.trim());
+    });
+  });
+}
+
+app.get('/', (req, res) => res.json({ status: 'ok', service: 'yt1bet-api' }));
+
+app.post('/info', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
-
   try {
-    const cobaltRes = await fetch('https://api.cobalt.tools/api/json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ url, filenamePattern: 'basic' }),
-    });
-
-    const data = await cobaltRes.json();
-
-    if (data.status === 'error') {
-      return res.status(400).json({ error: data.error?.code || 'Failed to fetch video info' });
-    }
-
-    // Extract video ID for YouTube thumbnail
-    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
-    const videoId = ytMatch ? ytMatch[1] : null;
-    const thumbnail = videoId
-      ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      : null;
-
-    return res.json({
-      status: 'success',
-      title: data.meta?.title || 'Video',
-      thumbnail,
-      url,
-    });
+    const output = await runYtDlp(['--dump-json', '--no-playlist', '--no-warnings', url]);
+    const data = JSON.parse(output);
+    return res.json({ title: data.title, thumbnail: data.thumbnail });
   } catch (err) {
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Failed to fetch video info' });
   }
 });
 
-// API: Download
-app.post('/api/download', async (req, res) => {
+app.post('/download', async (req, res) => {
   const { url, quality, type } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
-
   try {
-    const body = {
-      url,
-      filenamePattern: 'basic',
-    };
-
+    let format;
     if (type === 'mp3') {
-      body.downloadMode = 'audio';
-      body.audioFormat = 'mp3';
+      format = 'bestaudio[ext=m4a]/bestaudio/best';
     } else {
-      body.downloadMode = 'auto';
-      body.videoQuality = quality || '720';
+      const q = quality || '720';
+      format = `best[height<=${q}][ext=mp4]/best[height<=${q}]/best`;
     }
-
-    const cobaltRes = await fetch('https://api.cobalt.tools/api/json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await cobaltRes.json();
-
-    if (data.status === 'error') {
-      return res.status(400).json({ error: data.error?.code || 'Download failed' });
-    }
-
-    if (data.status === 'redirect' || data.status === 'stream') {
-      return res.json({ downloadUrl: data.url });
-    }
-
-    if (data.status === 'picker') {
-      return res.json({ downloadUrl: data.picker?.[0]?.url || data.url });
-    }
-
-    return res.status(400).json({ error: 'Could not get download link' });
+    const output = await runYtDlp(['--get-url', '--format', format, '--no-playlist', '--no-warnings', url]);
+    const downloadUrl = output.split('\n').filter(Boolean)[0];
+    if (!downloadUrl) return res.status(400).json({ error: 'No download URL found' });
+    return res.json({ downloadUrl });
   } catch (err) {
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Failed to get download URL' });
   }
-});
-
-// All other routes serve index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`yt1bet running on port ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  try { await ensureYtDlp(); } catch (e) { console.error('yt-dlp download failed:', e); }
+});
