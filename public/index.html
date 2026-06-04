@@ -630,9 +630,8 @@
       if (!res.ok || data.error) throw new Error(data.error || 'Download failed');
       if (data.downloadUrl) {
         const a = document.createElement('a');
-        a.href = data.downloadUrl;
-        a.download = '';
-        a.target = '_blank';
+a.href = data.downloadUrl;
+a.download = 'video.mp4';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
