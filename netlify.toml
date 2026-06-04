@@ -1,6 +1,11 @@
 [build]
   publish = "public"
-  command = "echo 'No build needed'"
+  functions = "netlify/functions"
 
 [functions]
-  directory = "netlify/functions"
+  timeout = 26
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
