@@ -3,15 +3,10 @@ exports.handler = async (event) => {
   const { url, quality, type } = JSON.parse(event.body || '{}');
   if (!url) return { statusCode: 400, body: JSON.stringify({ error: 'URL required' }) };
   try {
-    const res = await fetch('https://yt1bet-api-production.up.railway.app/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, quality, type }),
-      signal: AbortSignal.timeout(20000),
-    });
-    const data = await res.json();
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ downloadUrl: data.downloadUrl }) };
+    const ext = type === 'mp3' ? 'mp3' : 'mp4';
+    const downloadUrl = `https://yt1bet-api-production.up.railway.app/download?url=${encodeURIComponent(url)}&quality=${quality}&type=${type}`;
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ downloadUrl }) };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Failed to reach backend' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: 'Failed' }) };
   }
 };
