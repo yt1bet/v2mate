@@ -1,31 +1,15 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "netlify/functions/info.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "netlify/functions/download.js",
-      "use": "@vercel/node"
-    }
+    { "src": "api/info.js", "use": "@vercel/node" },
+    { "src": "api/download.js", "use": "@vercel/node" },
+    { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/.netlify/functions/info",
-      "dest": "netlify/functions/info.js"
-    },
-    {
-      "src": "/.netlify/functions/download",
-      "dest": "netlify/functions/download.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "public/$1"
-    }
+    { "src": "/api/info", "dest": "/api/info.js" },
+    { "src": "/api/download", "dest": "/api/download.js" },
+    { "src": "/sitemap.xml", "dest": "/public/sitemap.xml" },
+    { "src": "/robots.txt", "dest": "/public/robots.txt" },
+    { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
