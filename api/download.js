@@ -1,135 +1,197 @@
 const https = require('https');
+const http = require('http');
 
-function fetchUrl(urlStr, options = {}) {
+function fetchJson(url, options = {}) {
   return new Promise((resolve, reject) => {
-    const timeout = options.timeout || 20000;
-    const req = https.get(urlStr, { headers: options.headers || {} }, (res) => {
+    const lib = url.startsWith('https') ? https : http;
+    const req = lib.request(url, options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve({ json: JSON.parse(data), status: res.statusCode }); }
-        catch(e) { resolve({ json: null, raw: data, status: res.statusCode }); }
+        try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+        catch (e) { resolve({ status: res.statusCode, body: data }); }
       });
     });
     req.on('error', reject);
-    setTimeout(() => { req.destroy(); reject(new Error('Timeout')); }, timeout);
-  });
-}
-
-function postUrl(urlStr, body, options = {}) {
-  return new Promise((resolve, reject) => {
-    const timeout = options.timeout || 20000;
-    const bodyStr = JSON.stringify(body);
-    const urlObj = new URL(urlStr);
-    const reqOptions = {
-      hostname: urlObj.hostname,
-      path: urlObj.pathname + urlObj.search,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(bodyStr),
-        'Accept': 'application/json',
-        ...(options.headers || {})
-      }
-    };
-    const req = https.request(reqOptions, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try { resolve({ json: JSON.parse(data), status: res.statusCode }); }
-        catch(e) { resolve({ json: null, raw: data, status: res.statusCode }); }
-      });
-    });
-    req.on('error', reject);
-    setTimeout(() => { req.destroy(); reject(new Error('Timeout')); }, timeout);
-    req.write(bodyStr);
+    if (options.body) req.write(options.body);
     req.end();
   });
 }
 
+// Proxy a remote file directly to the client — forces download on mobile
+function proxyDownload(remoteUrl, filename, res) {
+  return new Promise((resolve, reject) => {
+    const lib = remoteUrl.startsWith('https') ? https : http;
+    lib.get(remoteUrl, (stream) => {
+      if (stream.statusCode === 301 || stream.statusCode === 302) {
+        // Follow redirect
+        proxyDownload(stream.headers.location, filename, res).then(resolve).catch(reject);
+        return;
+      }
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', stream.headers['content-type'] || 'application/octet-stream');
+      if (stream.headers['content-length']) {
+        res.setHeader('Content-Length', stream.headers['content-length']);
+      }
+      stream.pipe(res);
+      stream.on('end', resolve);
+      stream.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
+// ── MP4 via Cobalt (primary — works on mobile & desktop) ──────────────────
+async function getMp4Cobalt(videoUrl, quality) {
+  const qualityMap = { '1080p': '1080', '720p': '720', '480p': '480', '360p': '360' };
+  const q = qualityMap[quality] || '720';
+
+  const result = await fetchJson('https://cobalt.tools/api/json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ url: videoUrl, vQuality: q, isAudioOnly: false }),
+  });
+
+  if (result.status === 200 && result.body && result.body.url) {
+    return result.body.url;
+  }
+  return null;
+}
+
+// ── MP4 via YTStream RapidAPI (fallback) ─────────────────────────────────
+async function getMp4YTStream(videoId, quality) {
+  const qualityMap = { '1080p': '1080', '720p': '720', '480p': '480', '360p': '360' };
+  const q = qualityMap[quality] || '720';
+
+  const result = await fetchJson(
+    `https://ytstream-download-youtube-videos.p.rapidapi.com/dl?id=${videoId}`,
+    {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '5c798cfea6msh0568dcc85f3c7b2p172c88jsn1b4ef25f32b6',
+        'X-RapidAPI-Host': 'ytstream-download-youtube-videos.p.rapidapi.com',
+      },
+    }
+  );
+
+  if (result.status === 200 && result.body && result.body.url) {
+    const urls = result.body.url;
+    return urls[q] || urls['720'] || urls['480'] || Object.values(urls)[0] || null;
+  }
+  return null;
+}
+
+// ── MP3 via Spicy-Laika API ───────────────────────────────────────────────
+async function getMp3SpicyLaika(videoId) {
+  const result = await fetchJson(
+    `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=medium&wait_until_the_file_is_ready=false`,
+    {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '5c798cfea6msh0568dcc85f3c7b2p172c88jsn1b4ef25f32b6',
+        'X-RapidAPI-Host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com',
+      },
+    }
+  );
+
+  if (result.status !== 200 || !result.body) return null;
+
+  // reserved_file = permanent link, always prefer it
+  if (result.body.reserved_file) return result.body.reserved_file;
+  if (result.body.file) return result.body.file;
+
+  // Not ready yet — wait 4s and retry once
+  await new Promise(r => setTimeout(r, 4000));
+
+  const poll = await fetchJson(
+    `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=medium&wait_until_the_file_is_ready=false`,
+    {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '5c798cfea6msh0568dcc85f3c7b2p172c88jsn1b4ef25f32b6',
+        'X-RapidAPI-Host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com',
+      },
+    }
+  );
+
+  if (poll.status === 200 && poll.body) {
+    if (poll.body.reserved_file) return poll.body.reserved_file;
+    if (poll.body.file) return poll.body.file;
+  }
+
+  return null;
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { url, quality, format } = req.query || {};
-  if (!url) return res.status(400).json({ error: 'URL required' });
+  const { url, format, quality, proxy } = req.query;
+  if (!url) return res.status(400).json({ error: 'Missing url parameter' });
 
-  const RAPIDAPI_KEY = 'a0b99323a3msh3eec61168f0207dp1abf8ejsn1b6383ed2360';
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
-  const videoId = ytMatch ? ytMatch[1] : null;
-
-  // Instagram
-  if (!videoId) {
-    try {
-      const r = await postUrl('https://api.cobalt.tools/api/json', { url, vQuality: 'max' }, { timeout: 15000 });
-      if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
-    } catch(e) {}
-    return res.status(500).json({ error: 'Could not process Instagram URL' });
-  }
-
-  // MP3
-  if (format === 'mp3') {
-    // Try 1: Spicy-Laika — reserved_file is permanent
-    try {
-      const r = await fetchUrl(
-        `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=high&wait_until_the_file_is_ready=false`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 15000 }
-      );
-      if (r.json) {
-        const link = r.json.reserved_file || r.json.file || r.json.url || r.json.link;
-        if (link) return res.status(200).json({ downloadUrl: link });
-      }
-    } catch(e) {}
-
-    // Try 2: Cobalt audio
-    try {
-      const r = await postUrl('https://api.cobalt.tools/api/json', { url, isAudioOnly: true, aFormat: 'mp3' }, { timeout: 12000 });
-      if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
-    } catch(e) {}
-
-    // Try 3: youtube-mp36
-    try {
-      const r = await fetchUrl(
-        `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp36.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 12000 }
-      );
-      if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
-    } catch(e) {}
-
-    return res.status(500).json({ error: 'MP3 conversion failed. Please try again.' });
-  }
-
-  // MP4 — Cobalt FIRST (works on mobile), YTStream fallback
-  const qualityNum = quality ? quality.replace('p', '') : '720';
-
-  // Try 1: Cobalt — clean links, works on mobile
+  // Extract video ID
+  let videoId = null;
   try {
-    const r = await postUrl(
-      'https://api.cobalt.tools/api/json',
-      { url, vQuality: qualityNum },
-      { timeout: 12000 }
-    );
-    if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
-  } catch(e) {}
-
-  // Try 2: YTStream fallback
-  const heightMap = { '360': 360, '480': 480, '720': 720, '1080': 1080 };
-  const targetHeight = heightMap[qualityNum] || 720;
-  try {
-    const r = await fetchUrl(
-      `https://ytstream-download-youtube-videos.p.rapidapi.com/dl?id=${videoId}`,
-      { headers: { 'x-rapidapi-host': 'ytstream-download-youtube-videos.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 12000 }
-    );
-    if (r.json && r.json.formats && Array.isArray(r.json.formats)) {
-      const mp4s = r.json.formats.filter(f => f.mimeType && f.mimeType.includes('video/mp4') && f.url);
-      mp4s.sort((a, b) => Math.abs((a.height || 0) - targetHeight) - Math.abs((b.height || 0) - targetHeight));
-      if (mp4s.length > 0) return res.status(200).json({ downloadUrl: mp4s[0].url });
-      const any = r.json.formats.find(f => f.url);
-      if (any) return res.status(200).json({ downloadUrl: any.url });
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) {
+      videoId = u.pathname.slice(1).split('?')[0];
+    } else if (u.pathname.startsWith('/shorts/')) {
+      videoId = u.pathname.split('/shorts/')[1].split('?')[0];
+    } else {
+      videoId = u.searchParams.get('v');
     }
-  } catch(e) {}
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid YouTube URL' });
+  }
 
-  return res.status(500).json({ error: 'Could not get download link. Try another quality.' });
+  if (!videoId) return res.status(400).json({ error: 'Could not extract video ID' });
+
+  // ── PROXY MODE: stream file directly to client (forces download on mobile)
+  if (proxy === '1' && req.query.fileUrl) {
+    try {
+      const ext = format === 'mp3' ? 'mp3' : 'mp4';
+      await proxyDownload(req.query.fileUrl, `video.${ext}`, res);
+      return;
+    } catch (err) {
+      return res.status(500).json({ error: 'Proxy failed: ' + err.message });
+    }
+  }
+
+  try {
+    if (format === 'mp3') {
+      const mp3Url = await getMp3SpicyLaika(videoId);
+      if (mp3Url) {
+        // Proxy it through Vercel so mobile gets a real download
+        try {
+          await proxyDownload(mp3Url, `${videoId}.mp3`, res);
+        } catch (e) {
+          // If proxy fails (large file timeout), return the URL directly as fallback
+          return res.status(200).json({ downloadUrl: mp3Url, videoId });
+        }
+        return;
+      }
+      return res.status(500).json({ error: 'MP3 conversion failed. Please try again.' });
+
+    } else {
+      // MP4 — Cobalt first (mobile-safe), YTStream fallback
+      let mp4Url = await getMp4Cobalt(url, quality || '720p');
+      if (!mp4Url) {
+        mp4Url = await getMp4YTStream(videoId, quality || '720p');
+      }
+
+      if (mp4Url) {
+        // Return URL to frontend — frontend opens it
+        // Cobalt URLs work on mobile natively
+        return res.status(200).json({ downloadUrl: mp4Url, videoId });
+      }
+      return res.status(500).json({ error: 'Video download failed. Try a different quality.' });
+    }
+  } catch (err) {
+    console.error('Download error:', err);
+    return res.status(500).json({ error: 'Server error: ' + err.message });
+  }
 };
