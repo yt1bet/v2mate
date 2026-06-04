@@ -2,7 +2,7 @@ const https = require('https');
 
 function fetchUrl(urlStr, options = {}) {
   return new Promise((resolve, reject) => {
-    const timeout = options.timeout || 20000;
+    const timeout = options.timeout || 25000;
     const req = https.get(urlStr, { headers: options.headers || {} }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -69,9 +69,21 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Could not process Instagram URL' });
   }
 
-  // MP3 — try multiple APIs
+  // MP3
   if (format === 'mp3') {
-    // Try 1: youtube-mp36
+    // Try 1: Spicy-Laika — correct endpoint
+    try {
+      const r = await fetchUrl(
+        `https://youtube-mp3-audio-video-downloader.p.rapidapi.com/get_mp3_download_link/${videoId}?quality=high&wait_until_the_file_is_ready=true`,
+        { headers: { 'x-rapidapi-host': 'youtube-mp3-audio-video-downloader.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 25000 }
+      );
+      if (r.json) {
+        const link = r.json.url || r.json.link || r.json.downloadUrl || r.json.download_url;
+        if (link) return res.status(200).json({ downloadUrl: link });
+      }
+    } catch(e) {}
+
+    // Try 2: youtube-mp36
     try {
       const r = await fetchUrl(
         `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
@@ -79,7 +91,7 @@ module.exports = async (req, res) => {
       );
       if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
       if (r.json && r.json.status === 'processing') {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 5; i++) {
           await new Promise(r => setTimeout(r, 3000));
           const poll = await fetchUrl(
             `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`,
@@ -90,26 +102,13 @@ module.exports = async (req, res) => {
       }
     } catch(e) {}
 
-    // Try 2: Cobalt for audio
+    // Try 3: Cobalt audio
     try {
-      const r = await postUrl(
-        'https://api.cobalt.tools/api/json',
-        { url, isAudioOnly: true, aFormat: 'mp3' },
-        { timeout: 15000 }
-      );
+      const r = await postUrl('https://api.cobalt.tools/api/json', { url, isAudioOnly: true, aFormat: 'mp3' }, { timeout: 15000 });
       if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
     } catch(e) {}
 
-    // Try 3: y2mate-style API
-    try {
-      const r = await fetchUrl(
-        `https://youtube-mp3-download1.p.rapidapi.com/dl?id=${videoId}`,
-        { headers: { 'x-rapidapi-host': 'youtube-mp3-download1.p.rapidapi.com', 'x-rapidapi-key': RAPIDAPI_KEY }, timeout: 20000 }
-      );
-      if (r.json && r.json.link) return res.status(200).json({ downloadUrl: r.json.link });
-    } catch(e) {}
-
-    return res.status(500).json({ error: 'MP3 conversion failed. Try again in a moment.' });
+    return res.status(500).json({ error: 'MP3 conversion failed. Please try again.' });
   }
 
   // MP4 via YTStream
@@ -133,11 +132,7 @@ module.exports = async (req, res) => {
   // Cobalt fallback for MP4
   try {
     const qualityNum = quality ? quality.replace('p', '') : '720';
-    const r = await postUrl(
-      'https://api.cobalt.tools/api/json',
-      { url, vQuality: qualityNum },
-      { timeout: 15000 }
-    );
+    const r = await postUrl('https://api.cobalt.tools/api/json', { url, vQuality: qualityNum }, { timeout: 15000 });
     if (r.json && r.json.url) return res.status(200).json({ downloadUrl: r.json.url });
   } catch(e) {}
 
