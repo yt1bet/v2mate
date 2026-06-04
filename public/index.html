@@ -566,7 +566,7 @@
     btn.innerHTML = '<span class="spinner"></span>Loading...';
 
     try {
-      const res = await fetch('/.netlify/functions/info', {
+      const res = await fetch('https://yt1bet-api-production.up.railway.app/info', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
