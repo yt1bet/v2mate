@@ -1,61 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Terms of Service — yt1bet</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --orange: #F97316; --bg: #0f0f0f; --surface: #1a1a1a; --border: #2e2e2e; --text: #f5f5f5; --muted: #888; --radius: 12px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .logo { font-size: 1.5rem; font-weight: 800; color: var(--orange); text-decoration: none; }
-    .logo span { color: var(--text); }
-    nav ul { list-style: none; display: flex; gap: 24px; }
-    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
-    nav ul a:hover { color: var(--text); }
-    .page { max-width: 700px; margin: 60px auto; padding: 0 20px; }
-    h1 { font-size: 2rem; font-weight: 800; margin-bottom: 24px; }
-    h1 span { color: var(--orange); }
-    h2 { font-size: 1.1rem; font-weight: 700; margin: 28px 0 8px; }
-    p { color: var(--muted); line-height: 1.7; margin-bottom: 12px; font-size: 0.95rem; }
-    footer { text-align: center; padding: 32px 20px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 80px; }
-    footer a { color: var(--muted); text-decoration: none; margin: 0 12px; }
-    footer a:hover { color: var(--orange); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — yt1bet</title>
+<meta name="description" content="Terms of Service for yt1bet. Read the rules governing your use of our free YouTube video downloader service.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://yt1bet.com/terms.html">
+<meta property="og:title" content="Terms of Service — yt1bet">
+<meta property="og:url" content="https://yt1bet.com/terms.html">
+<meta property="og:site_name" content="yt1bet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --blue: #03A7FF; --text: #111827; --text-soft: #4B5563; --text-muted: #9CA3AF; --border: #E5E7EB; --bg: #FFFFFF; --bg-soft: #F9FAFB; --radius: 10px; }
+  body { font-family: 'DM Sans', sans-serif; font-stretch: normal; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { font-size: 20px; font-weight: 700; color: var(--blue); text-decoration: none; }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a { color: var(--text-soft); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--blue); }
+  .page-hero { background: var(--bg-soft); border-bottom: 1px solid var(--border); padding: 48px 24px 40px; text-align: center; }
+  .page-label { display: inline-block; background: #EFF6FF; color: var(--blue); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; }
+  .page-hero h1 { font-size: clamp(24px, 3.5vw, 34px); font-weight: 700; letter-spacing: -0.3px; color: var(--text); font-stretch: normal; }
+  .page-hero p { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+  .legal-body { max-width: 780px; margin: 0 auto; padding: 52px 24px; }
+  .legal-body h2 { font-size: 18px; font-weight: 700; color: var(--text); margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-stretch: normal; }
+  .legal-body h2:first-child { margin-top: 0; }
+  .legal-body p { font-size: 15px; color: var(--text-soft); line-height: 1.75; margin-bottom: 14px; }
+  .legal-body ul { margin: 10px 0 16px 22px; display: flex; flex-direction: column; gap: 8px; }
+  .legal-body li { font-size: 15px; color: var(--text-soft); line-height: 1.65; }
+  .legal-body strong { color: var(--text); font-weight: 600; }
+  .legal-body a { color: var(--blue); text-decoration: none; }
+  .legal-body a:hover { text-decoration: underline; }
+  footer { border-top: 1px solid var(--border); background: #fff; padding: 36px 24px; }
+  .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; }
+  .footer-logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--blue); }
+  .footer-copy { width: 100%; font-size: 13px; color: var(--text-muted); margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border); text-align: center; }
+</style>
 </head>
 <body>
 <nav>
-  <a href="/" class="logo">yt1<span>bet</span></a>
-  <ul>
-    <li><a href="/contact.html">Contact</a></li>
-    <li><a href="/terms.html">Terms</a></li>
-    <li><a href="/privacy.html">Privacy</a></li>
+  <a href="index.html" class="nav-logo">yt1bet</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
+    <li><a href="disclaimer.html">Disclaimer</a></li>
   </ul>
 </nav>
-<div class="page">
-  <h1>Terms of <span>Service</span></h1>
+
+<header class="page-hero">
+  <span class="page-label">Legal</span>
+  <h1>Terms of Service</h1>
   <p>Last updated: June 2025</p>
+</header>
 
-  <h2>1. Acceptance of Terms</h2>
-  <p>By using yt1bet, you agree to these terms. If you do not agree, please do not use this service.</p>
+<div class="legal-body">
 
-  <h2>2. Personal Use Only</h2>
-  <p>yt1bet is intended for personal, non-commercial use only. You may only download videos that you have the right to download — such as your own content or content with an appropriate license.</p>
+  <h2>Acceptance of Terms</h2>
+  <p>By accessing or using yt1bet ("the Service," "we," "us") at yt1bet.com, you agree to be bound by these Terms of Service. If you do not agree to these terms, you must discontinue use of the Service immediately. We reserve the right to update these Terms at any time. Continued use of the Service after any modification constitutes acceptance of the updated Terms.</p>
 
-  <h2>3. Copyright</h2>
-  <p>We do not host, store, or distribute any video content. We provide a tool that generates download links. You are solely responsible for ensuring you have the right to download any content.</p>
+  <h2>Description of Service</h2>
+  <p>yt1bet is a free online utility that allows users to download publicly available videos from third-party platforms including YouTube and Instagram for personal offline use. yt1bet does not host, store, or cache any video or audio content. All downloads are processed in real time directly from the source platform.</p>
 
-  <h2>4. No Warranty</h2>
-  <p>This service is provided "as is" without any warranty. We do not guarantee availability, accuracy, or fitness for any purpose.</p>
+  <h2>Permitted Use</h2>
+  <p>You may use yt1bet solely for the following purposes:</p>
+  <ul>
+    <li>Downloading publicly accessible videos for personal, non-commercial offline viewing</li>
+    <li>Extracting audio from videos you are authorized to download for personal use</li>
+    <li>Accessing content you own or have explicit permission to download</li>
+  </ul>
 
-  <h2>5. Changes</h2>
-  <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance.</p>
+  <h2>Prohibited Use</h2>
+  <p>You agree not to use yt1bet for any of the following activities:</p>
+  <ul>
+    <li>Downloading, copying, distributing, or reproducing copyrighted content without authorization from the copyright owner</li>
+    <li>Using downloaded content for commercial purposes, including resale, broadcasting, or public performance</li>
+    <li>Circumventing any technological protection measures or digital rights management systems</li>
+    <li>Automated, bulk, or programmatic downloading through scripts, bots, or crawlers</li>
+    <li>Any use that violates applicable local, national, or international law or regulation</li>
+    <li>Any use that violates the Terms of Service of the third-party platform from which content originates</li>
+    <li>Attempting to interfere with, disrupt, or gain unauthorized access to the Service or its underlying infrastructure</li>
+  </ul>
+
+  <h2>Intellectual Property</h2>
+  <p>All content available through third-party platforms accessed via yt1bet remains the property of the respective copyright holders. yt1bet claims no ownership of any video, audio, or other media that users choose to download through this Service. The yt1bet name, logo, and website design are the property of yt1bet and may not be copied or reproduced without permission.</p>
+
+  <h2>No Warranty</h2>
+  <p>The Service is provided on an "as is" and "as available" basis without any warranties of any kind, either express or implied. yt1bet makes no warranty that the Service will be uninterrupted, error-free, secure, or free of viruses or other harmful components. We do not warrant the accuracy, completeness, or reliability of any content processed through the Service.</p>
+
+  <h2>Limitation of Liability</h2>
+  <p>To the maximum extent permitted by applicable law, yt1bet and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service. This includes but is not limited to damages for loss of profits, data, goodwill, or other intangible losses, even if yt1bet has been advised of the possibility of such damages.</p>
+
+  <h2>Indemnification</h2>
+  <p>You agree to indemnify, defend, and hold harmless yt1bet and its operators, officers, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including legal fees) arising out of or in any way connected with your use of the Service, your violation of these Terms, or your violation of any rights of a third party, including intellectual property rights.</p>
+
+  <h2>Third-Party Links and Services</h2>
+  <p>yt1bet may contain links to third-party websites or services. These links are provided for convenience only. yt1bet has no control over the content or policies of those third-party sites and accepts no responsibility for them. Your use of any third-party service is subject to that service's own terms and privacy policy.</p>
+
+  <h2>Termination</h2>
+  <p>We reserve the right to terminate or restrict your access to yt1bet at any time, without notice, for conduct that we determine violates these Terms, is harmful to other users, third parties, or the Service, or for any other reason at our sole discretion.</p>
+
+  <h2>Governing Law</h2>
+  <p>These Terms shall be governed by and construed in accordance with applicable law. Any disputes arising under these Terms shall be resolved through binding arbitration or in the courts of competent jurisdiction, as applicable.</p>
+
+  <h2>Contact</h2>
+  <p>For questions about these Terms of Service, please visit our <a href="contact.html">Contact page</a>.</p>
+
 </div>
+
 <footer>
-  <p><a href="/">Home</a><a href="/contact.html">Contact</a><a href="/privacy.html">Privacy</a></p>
-  <p style="margin-top:8px">© 2025 yt1bet</p>
+  <div class="footer-inner">
+    <a href="index.html" class="footer-logo">yt1bet</a>
+    <nav class="footer-links">
+      <a href="blog.html">Blog</a>
+      <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </nav>
+    <p class="footer-copy">2025 yt1bet. For personal use only. We do not host any videos. yt1bet is not affiliated with YouTube or Instagram.</p>
+  </div>
 </footer>
 </body>
 </html>

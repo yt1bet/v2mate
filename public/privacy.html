@@ -1,61 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — yt1bet</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --orange: #F97316; --bg: #0f0f0f; --surface: #1a1a1a; --border: #2e2e2e; --text: #f5f5f5; --muted: #888; --radius: 12px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .logo { font-size: 1.5rem; font-weight: 800; color: var(--orange); text-decoration: none; }
-    .logo span { color: var(--text); }
-    nav ul { list-style: none; display: flex; gap: 24px; }
-    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
-    nav ul a:hover { color: var(--text); }
-    .page { max-width: 700px; margin: 60px auto; padding: 0 20px; }
-    h1 { font-size: 2rem; font-weight: 800; margin-bottom: 24px; }
-    h1 span { color: var(--orange); }
-    h2 { font-size: 1.1rem; font-weight: 700; margin: 28px 0 8px; }
-    p { color: var(--muted); line-height: 1.7; margin-bottom: 12px; font-size: 0.95rem; }
-    footer { text-align: center; padding: 32px 20px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 80px; }
-    footer a { color: var(--muted); text-decoration: none; margin: 0 12px; }
-    footer a:hover { color: var(--orange); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — yt1bet</title>
+<meta name="description" content="Privacy Policy for yt1bet. We do not collect personal data. Learn how yt1bet handles your information when you use our free YouTube video downloader.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://yt1bet.com/privacy.html">
+<meta property="og:title" content="Privacy Policy — yt1bet">
+<meta property="og:url" content="https://yt1bet.com/privacy.html">
+<meta property="og:site_name" content="yt1bet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --blue: #03A7FF; --text: #111827; --text-soft: #4B5563; --text-muted: #9CA3AF; --border: #E5E7EB; --bg: #FFFFFF; --bg-soft: #F9FAFB; --radius: 10px; }
+  body { font-family: 'DM Sans', sans-serif; font-stretch: normal; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { font-size: 20px; font-weight: 700; color: var(--blue); text-decoration: none; }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a { color: var(--text-soft); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--blue); }
+  .page-hero { background: var(--bg-soft); border-bottom: 1px solid var(--border); padding: 48px 24px 40px; text-align: center; }
+  .page-label { display: inline-block; background: #EFF6FF; color: var(--blue); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; }
+  .page-hero h1 { font-size: clamp(24px, 3.5vw, 34px); font-weight: 700; letter-spacing: -0.3px; color: var(--text); font-stretch: normal; }
+  .page-hero p { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+  .legal-body { max-width: 780px; margin: 0 auto; padding: 52px 24px; }
+  .legal-body h2 { font-size: 18px; font-weight: 700; color: var(--text); margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-stretch: normal; }
+  .legal-body h2:first-child { margin-top: 0; }
+  .legal-body p { font-size: 15px; color: var(--text-soft); line-height: 1.75; margin-bottom: 14px; }
+  .legal-body ul { margin: 10px 0 16px 22px; display: flex; flex-direction: column; gap: 8px; }
+  .legal-body li { font-size: 15px; color: var(--text-soft); line-height: 1.65; }
+  .legal-body strong { color: var(--text); font-weight: 600; }
+  .legal-body a { color: var(--blue); text-decoration: none; }
+  .legal-body a:hover { text-decoration: underline; }
+  footer { border-top: 1px solid var(--border); background: #fff; padding: 36px 24px; }
+  .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; }
+  .footer-logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--blue); }
+  .footer-copy { width: 100%; font-size: 13px; color: var(--text-muted); margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border); text-align: center; }
+</style>
 </head>
 <body>
 <nav>
-  <a href="/" class="logo">yt1<span>bet</span></a>
-  <ul>
-    <li><a href="/contact.html">Contact</a></li>
-    <li><a href="/terms.html">Terms</a></li>
-    <li><a href="/privacy.html">Privacy</a></li>
+  <a href="index.html" class="nav-logo">yt1bet</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="terms.html">Terms</a></li>
+    <li><a href="disclaimer.html">Disclaimer</a></li>
   </ul>
 </nav>
-<div class="page">
-  <h1>Privacy <span>Policy</span></h1>
+
+<header class="page-hero">
+  <span class="page-label">Legal</span>
+  <h1>Privacy Policy</h1>
   <p>Last updated: June 2025</p>
+</header>
 
-  <h2>1. What We Collect</h2>
-  <p>We do not collect personal information. When you use yt1bet, we temporarily process the URL you submit in order to generate a download link. We do not store URLs, download history, or any user data.</p>
+<div class="legal-body">
 
-  <h2>2. Cookies</h2>
-  <p>We do not use tracking cookies or analytics. No third-party advertising scripts are loaded on this site.</p>
+  <h2>Our Privacy Commitment</h2>
+  <p>yt1bet ("we," "us") is committed to protecting your privacy. This Privacy Policy explains what information — if any — we collect when you use yt1bet.com, how it is used, and your rights. <strong>The short version: we do not collect, store, or sell your personal data.</strong> No account is required to use yt1bet, and we do not track individual users.</p>
 
-  <h2>3. Third-Party Services</h2>
-  <p>Download links are generated via the Cobalt API. Please refer to their privacy policy for how they handle requests.</p>
+  <h2>Information We Do Not Collect</h2>
+  <p>yt1bet does not collect:</p>
+  <ul>
+    <li>Your name, email address, or any account information (no registration required)</li>
+    <li>Your payment information (the service is free)</li>
+    <li>The video URLs you paste into the downloader beyond what is necessary to process your request in real time</li>
+    <li>Your search history or download history</li>
+    <li>Precise geolocation data</li>
+  </ul>
 
-  <h2>4. Changes</h2>
-  <p>We may update this policy at any time. Continued use of the service means you accept the updated policy.</p>
+  <h2>Automatically Collected Technical Data</h2>
+  <p>Like most websites, our servers may automatically receive and log standard technical information when you visit yt1bet.com. This may include:</p>
+  <ul>
+    <li>Your IP address (used solely for abuse prevention and security purposes)</li>
+    <li>Browser type and version</li>
+    <li>Operating system</li>
+    <li>Referring URL</li>
+    <li>Pages visited and time of visit</li>
+  </ul>
+  <p>This information is collected in aggregate form and is not used to identify individual users. It is retained only as long as necessary for operational security purposes.</p>
 
-  <h2>5. Contact</h2>
-  <p>For privacy-related questions, email us at support@yt1bet.com.</p>
+  <h2>Cookies</h2>
+  <p>yt1bet uses minimal, essential cookies only. We do not use tracking cookies, advertising cookies, or third-party analytics cookies that profile your behavior. Essential cookies may be used to maintain basic site functionality. You can disable cookies in your browser settings; however, this may affect some features of the site.</p>
+
+  <h2>Video URLs and Download Requests</h2>
+  <p>When you paste a video URL into yt1bet, that URL is transmitted to our backend API solely to process your download request in real time. <strong>We do not log, store, or retain the video URLs you submit.</strong> Once your download is complete, no record of the URL is kept on our servers.</p>
+
+  <h2>Children's Privacy</h2>
+  <p>yt1bet is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, please contact us and we will promptly delete it.</p>
+
+  <h2>Third-Party Services</h2>
+  <p>yt1bet's download functionality relies on processing requests to third-party platforms (YouTube, Instagram). When you use yt1bet to access content from these platforms, your request passes through our backend service. We do not share your information with these platforms beyond what is technically required to fulfill the download. Please review the privacy policies of those platforms separately.</p>
+  <p>yt1bet does not use third-party advertising networks, social media tracking pixels, or behavioral analytics platforms.</p>
+
+  <h2>Data Security</h2>
+  <p>We implement reasonable technical and organizational measures to protect any technical data we temporarily handle from unauthorized access, disclosure, or loss. However, no internet-based service can guarantee 100% security.</p>
+
+  <h2>Your Rights</h2>
+  <p>Since we do not collect personal data, there is generally no personal data for us to provide, correct, or delete on your behalf. If you have concerns about any data that may have been collected, please contact us via the <a href="contact.html">Contact page</a> and we will respond promptly.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date. Continued use of yt1bet after any changes constitutes your acceptance of the updated policy.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy-related questions or concerns, please visit our <a href="contact.html">Contact page</a>.</p>
+
 </div>
+
 <footer>
-  <p><a href="/">Home</a><a href="/contact.html">Contact</a><a href="/terms.html">Terms</a></p>
-  <p style="margin-top:8px">© 2025 yt1bet</p>
+  <div class="footer-inner">
+    <a href="index.html" class="footer-logo">yt1bet</a>
+    <nav class="footer-links">
+      <a href="blog.html">Blog</a>
+      <a href="contact.html">Contact</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="disclaimer.html">Disclaimer</a>
+    </nav>
+    <p class="footer-copy">2025 yt1bet. For personal use only. We do not host any videos. yt1bet is not affiliated with YouTube or Instagram.</p>
+  </div>
 </footer>
 </body>
 </html>
