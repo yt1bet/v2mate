@@ -415,7 +415,7 @@ async function triggerDownload(url, quality, format, btn) {
 
     const a = document.createElement('a');
     a.href = data.downloadUrl;
-    a.target = '_blank';
+    a.download = '';
     a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
