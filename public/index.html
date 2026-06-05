@@ -193,6 +193,81 @@
   .footer-links a { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
   .footer-links a:hover { color: var(--blue); }
   .footer-copy { width: 100%; font-size: 13px; color: var(--text-muted); margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; }
+
+  /* ── DOWNLOAD POPUP ── */
+  #dl-popup {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 9999;
+    justify-content: center; align-items: center;
+    padding: 16px;
+  }
+  #dl-popup.show { display: flex; }
+  .popup-box {
+    background: #0d1117;
+    border: 1px solid #1e2a3a;
+    border-radius: 16px;
+    padding: 36px 32px 28px;
+    max-width: 400px; width: 100%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(3,167,255,0.15), 0 24px 48px rgba(0,0,0,0.5);
+    animation: popupIn 0.25s ease;
+  }
+  @keyframes popupIn {
+    from { opacity:0; transform: scale(0.93) translateY(12px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .popup-icon {
+    width: 56px; height: 56px;
+    background: rgba(3,167,255,0.12);
+    border: 1.5px solid rgba(3,167,255,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .popup-title {
+    color: #fff; font-size: 20px; font-weight: 700;
+    margin-bottom: 6px; letter-spacing: -0.3px;
+  }
+  .popup-title span { color: #03A7FF; }
+  .popup-subtitle {
+    color: #6b7280; font-size: 13px; line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .popup-bar-wrap {
+    background: #1a2332; border-radius: 999px;
+    height: 7px; overflow: hidden; margin-bottom: 22px;
+  }
+  .popup-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #03A7FF, #0070ff);
+    border-radius: 999px;
+    transition: width 0.1s linear;
+  }
+  .popup-dl-btn {
+    width: 100%; padding: 13px;
+    background: #03A7FF; color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; margin-bottom: 12px;
+    letter-spacing: 0.2px;
+    transition: background 0.2s;
+  }
+  .popup-dl-btn:hover { background: #0290e0; }
+  .popup-cancel {
+    background: none; border: none;
+    color: #4b5563; font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; text-decoration: underline;
+    margin-bottom: 16px; display: block; width: 100%;
+  }
+  .popup-cancel:hover { color: #9ca3af; }
+  .popup-disclaimer {
+    color: #374151; font-size: 11px; line-height: 1.6;
+    border-top: 1px solid #1e2a3a; padding-top: 14px; margin-top: 4px;
+  }
+  .popup-disclaimer a { color: #4b5563; }
+
   @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr; gap: 32px; } .steps-grid { grid-template-columns: 1fr; } .features-grid { grid-template-columns: 1fr 1fr; } .nav-links { gap: 16px; } }
   @media (max-width: 540px) { .features-grid { grid-template-columns: 1fr; } .hero { padding: 48px 16px 40px; } .search-box button { padding: 14px 18px; } .nav-links li:nth-child(2) { display: none; } }
 </style>
@@ -333,8 +408,31 @@
   </div>
 </footer>
 
+<!-- ── DOWNLOAD POPUP ── -->
+<div id="dl-popup">
+  <div class="popup-box">
+    <div class="popup-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#03A7FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </div>
+    <div class="popup-title">Download Starting in <span id="popup-count">10</span>s</div>
+    <div class="popup-subtitle">Your download will begin shortly. If it doesn't start automatically, tap the button below. Downloads are processed securely — no files are stored on our servers.</div>
+    <div class="popup-bar-wrap">
+      <div class="popup-bar" id="popup-bar"></div>
+    </div>
+    <button class="popup-dl-btn" id="popup-now-btn">⚡ Download Now</button>
+    <button class="popup-cancel" onclick="closePopup()">Cancel</button>
+    <div class="popup-disclaimer">
+      By downloading, you agree to our <a href="terms.html">Terms of Service</a>. For personal use only. We do not store any downloaded content.
+    </div>
+  </div>
+</div>
+
 <script>
-// ─── API calls go to /api/ (Vercel serverless functions) ───────
+// ─── API calls ───────────────────────────────────────────────
 async function fetchVideo() {
   const url = document.getElementById('url-input').value.trim();
   if (!url) return;
@@ -366,19 +464,19 @@ async function fetchVideo() {
         const b = document.createElement('button');
         b.className = 'dl-btn';
         b.textContent = `MP4 ${q}`;
-        b.onclick = () => triggerDownload(url, q, 'mp4', b);
+        b.onclick = () => showPopup(() => triggerDownload(url, q, 'mp4', b));
         btns.appendChild(b);
       });
       const mp3Btn = document.createElement('button');
       mp3Btn.className = 'dl-btn mp3';
       mp3Btn.textContent = 'MP3 Audio';
-      mp3Btn.onclick = () => triggerDownload(url, null, 'mp3', mp3Btn);
+      mp3Btn.onclick = () => showPopup(() => triggerDownload(url, null, 'mp3', mp3Btn));
       btns.appendChild(mp3Btn);
     } else {
       const b = document.createElement('button');
       b.className = 'dl-btn';
       b.textContent = 'Download Reel';
-      b.onclick = () => triggerDownload(url, null, 'mp4', b);
+      b.onclick = () => showPopup(() => triggerDownload(url, null, 'mp4', b));
       btns.appendChild(b);
     }
 
@@ -410,7 +508,6 @@ async function triggerDownload(url, quality, format, btn) {
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Failed');
 
-    // Railway returns streamUrl — open it directly, it streams the file
     const fileUrl = data.streamUrl || data.downloadUrl;
     const a = document.createElement('a');
     a.href = fileUrl;
@@ -429,6 +526,61 @@ async function triggerDownload(url, quality, format, btn) {
     btn.textContent = original;
   }
 }
+
+// ─── POPUP LOGIC ─────────────────────────────────────────────
+let popupTimer = null;
+let popupInterval = null;
+let pendingFn = null;
+
+function showPopup(fn) {
+  pendingFn = fn;
+  const popup = document.getElementById('dl-popup');
+  const bar = document.getElementById('popup-bar');
+  const count = document.getElementById('popup-count');
+  const title = popup.querySelector('.popup-title');
+
+  bar.style.width = '0%';
+  count.textContent = '10';
+  title.innerHTML = 'Download Starting in <span id="popup-count">10</span>s';
+  popup.classList.add('show');
+
+  let elapsed = 0;
+  const total = 10000;
+
+  popupInterval = setInterval(() => {
+    elapsed += 100;
+    bar.style.width = Math.min((elapsed / total) * 100, 100) + '%';
+    const cd = document.getElementById('popup-count');
+    if (cd) cd.textContent = Math.ceil((total - elapsed) / 1000);
+  }, 100);
+
+  popupTimer = setTimeout(() => fireDownload(), total);
+
+  document.getElementById('popup-now-btn').onclick = () => {
+    clearTimeout(popupTimer);
+    clearInterval(popupInterval);
+    fireDownload();
+  };
+}
+
+function fireDownload() {
+  const bar = document.getElementById('popup-bar');
+  bar.style.width = '100%';
+  const title = document.querySelector('.popup-title');
+  if (title) title.innerHTML = 'Download Started ✓';
+  setTimeout(() => {
+    closePopup();
+    if (pendingFn) pendingFn();
+  }, 500);
+}
+
+function closePopup() {
+  clearTimeout(popupTimer);
+  clearInterval(popupInterval);
+  document.getElementById('dl-popup').classList.remove('show');
+  pendingFn = null;
+}
+
 document.getElementById('url-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') fetchVideo();
 });
