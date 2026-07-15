@@ -1,7 +1,7 @@
 // api/download.js — Vercel serverless function
 // Routes all downloads through Railway yt-dlp backend
 
-const RAILWAY_URL = 'https://yt1bet-backend-production.up.railway.app';
+const RAILWAY_URL = 'yt1bet-backend-production-3719.up.railway.app';
 
 export default async function handler(req, res) {
   const { url, format, quality } = req.query;
