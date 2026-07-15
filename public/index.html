@@ -388,7 +388,6 @@ async function triggerDownload(url, quality, format, btn) {
     const a = document.createElement('a');
     a.href = fileUrl;
     a.download = format === 'mp3' ? 'audio.mp3' : `video_${quality || '720p'}.mp4`;
-    a.target = '_blank';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
