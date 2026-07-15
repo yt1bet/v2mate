@@ -414,11 +414,9 @@ function showPopup(fn) {
   const nowBtn   = document.getElementById('popup-now-btn');
   const title    = document.getElementById('popup-title');
   const subtitle = document.getElementById('popup-subtitle');
-  const count    = document.getElementById('popup-count');
 
   bar.style.width = '0%';
   bar.style.transition = 'width 0.1s linear';
-  count.textContent = '10';
   title.innerHTML = 'Please wait <span id="popup-count">10</span>s';
   subtitle.textContent = 'Your download link is being prepared. The button will unlock when ready.';
   nowBtn.disabled = true;
