@@ -455,6 +455,72 @@ async function fetchVideo() {
   }
 }
 
+// ─── FETCH TRANSCRIPTION ───────────────────────────────────────── 
+ async function fetchTranscript() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  const loading = document.getElementById('loading-msg');
+  const errorEl = document.getElementById('error-msg');
+  const resultsEl = document.getElementById('results');
+  loading.style.display = 'block';
+  errorEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+  try {
+    document.getElementById('result-thumb').style.display = 'none';
+    document.getElementById('result-title').textContent = 'YouTube Transcript';
+
+    const btns = document.getElementById('download-buttons');
+    btns.innerHTML = '';
+
+    const plainBtn = document.createElement('button');
+    plainBtn.className = 'dl-btn';
+    plainBtn.textContent = 'Plain Text';
+    plainBtn.onclick = () => downloadTranscript(url, 'plain', plainBtn);
+    btns.appendChild(plainBtn);
+
+    const tsBtn = document.createElement('button');
+    tsBtn.className = 'dl-btn mp3';
+    tsBtn.textContent = 'With Timestamps';
+    tsBtn.onclick = () => downloadTranscript(url, 'timestamped', tsBtn);
+    btns.appendChild(tsBtn);
+
+    loading.style.display = 'none';
+    resultsEl.style.display = 'block';
+  } catch (e) {
+    loading.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = 'Could not load transcript options.';
+  }
+}
+
+async function downloadTranscript(url, format, btn) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Fetching...';
+  try {
+    const res = await fetch(`/api/transcript?url=${encodeURIComponent(url)}&format=${format}`);
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed');
+    }
+    const text = await res.text();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = format === 'timestamped' ? 'transcript_timestamped.txt' : 'transcript.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    alert(e.message || 'Transcript not available for this video.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+ 
 // ─── TRIGGER ACTUAL DOWNLOAD ─────────────────────────────────
 async function triggerDownload(url, quality, format, btn) {
   const mp3Status = document.getElementById('mp3-status');
