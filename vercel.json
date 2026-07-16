@@ -2,12 +2,14 @@
   "version": 2,
   "builds": [
     { "src": "api/info.js", "use": "@vercel/node" },
+    { "src": "api/transcript.js", "use": "@vercel/node" },
     { "src": "api/download.js", "use": "@vercel/node" },
     { "src": "api/thumbnail.js", "use": "@vercel/node" },
     { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/info", "dest": "/api/info.js" },
+    { "src": "/api/transcript", "dest": "/api/transcript.js" },
     { "src": "/api/download", "dest": "/api/download.js" },
     { "src": "/api/thumbnail", "dest": "/api/thumbnail.js" },
     { "src": "/sitemap.xml", "dest": "/public/sitemap.xml" },
