@@ -369,14 +369,28 @@ async function fetchThumbnail() {
     const b = document.createElement('button');
     b.className = 'dl-btn';
     b.textContent = 'Download Thumbnail';
-    b.onclick = () => {
-      const a = document.createElement('a');
-      a.href = data.streamUrl;
-      a.download = 'thumbnail.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
+    b.onclick = async () => {
+  const originalText = b.textContent;
+  b.textContent = 'Downloading...';
+  b.disabled = true;
+  try {
+    const imgRes = await fetch(data.streamUrl);
+    const blob = await imgRes.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = 'thumbnail.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    alert('Could not download thumbnail. Please try again.');
+  } finally {
+    b.textContent = originalText;
+    b.disabled = false;
+  }
+};
     btns.appendChild(b);
 
     loading.style.display = 'none';
