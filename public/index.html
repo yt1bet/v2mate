@@ -331,19 +331,21 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('mode-video').classList.toggle('active', mode === 'video');
   document.getElementById('mode-thumb').classList.toggle('active', mode === 'thumbnail');
+  document.getElementById('mode-transcript').classList.toggle('active', mode === 'transcript');
   document.getElementById('url-input').placeholder = mode === 'thumbnail'
     ? 'Paste YouTube URL to get thumbnail...'
+    : mode === 'transcript'
+    ? 'Paste YouTube URL to get transcript...'
     : 'Paste YouTube or Instagram URL here...';
   document.getElementById('results').style.display = 'none';
   document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('result-thumb').style.display = 'block';
 }
 
 function handleDownloadClick() {
-  if (currentMode === 'thumbnail') {
-    fetchThumbnail();
-  } else {
-    fetchVideo();
-  }
+  if (currentMode === 'thumbnail') fetchThumbnail();
+  else if (currentMode === 'transcript') fetchTranscript();
+  else fetchVideo();
 }
 
 // ─── FETCH THUMBNAIL ─────────────────────────────────────────
